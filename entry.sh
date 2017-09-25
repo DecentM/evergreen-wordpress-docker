@@ -1,5 +1,11 @@
 #!/bin/ash
 
+mkdir /etc/nginx/keys
+mkdir /data/logs
+mkdir /data/wordpress
+mkdir /tmp/php-fpm
+chown nginx:nginx -R /tmp/php-fpm
+
 if [ ! -f /data/wp-config.php ]; then
   sed -e "s/database_name_here/$WORDPRESS_DB/
   s/username_here/$WORDPRESS_DB/
@@ -26,7 +32,7 @@ if [ ! -f /data/wp-config.php ]; then
     define('CONCATENATE_SCRIPTS', true);
   " >> /data/wordpress/wp-config.php
 
-  chown nginx:nginx /data/wordpress/wp-config.php
+  chown nginx:nginx -R /data/wordpress
 fi
 
 openssl req -new -newkey rsa:2048 \
@@ -37,8 +43,6 @@ openssl req -new -newkey rsa:2048 \
   -out /usr/share/server.crt \
   -subj "/C=00/ST=Local/L=Local/O=You/OU=Docker automation/CN=*"
 
-curl https://2ton.com.au/dhparam/2048/$(($RANDOM % 128)) > /etc/nginx/dhparam.pem
+curl https://2ton.com.au/dhparam/2048/$(($RANDOM % 128)) > /etc/nginx/keys/dhparam.pem
 
-# start nginx
-# /etc/init.d/nginx start
-nginx -c /etc/nginx/nginx.conf
+/usr/bin/supervisord -n -c /etc/supervisord.conf
