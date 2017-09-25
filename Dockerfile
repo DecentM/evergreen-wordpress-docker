@@ -1,40 +1,45 @@
-FROM php:7.1-fpm
+FROM alpine:3.5
+MAINTAINER DecentM <decentm@decentm.com>
 
-# install the PHP extensions we need
-RUN set -ex; \
-	\
-	apt-get update; \
-	apt-get install -y \
-		libjpeg-dev \
-		libpng-dev \
-	; \
-	rm -rf /var/lib/apt/lists/*; \
-	\
-	docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
-	docker-php-ext-install gd mysqli opcache
-# TODO consider removing the *-dev deps and only keeping the necessary lib* packages
+# Install some packages we need
+RUN adduser -D -u 1000 -g 'nginx' nginx
 
-# set recommended PHP.ini settings
-# see https://secure.php.net/manual/en/opcache.installation.php
-RUN { \
-		echo 'opcache.memory_consumption=128'; \
-		echo 'opcache.interned_strings_buffer=8'; \
-		echo 'opcache.max_accelerated_files=4000'; \
-		echo 'opcache.revalidate_freq=2'; \
-		echo 'opcache.fast_shutdown=1'; \
-		echo 'opcache.enable_cli=1'; \
-	} > /usr/local/etc/php/conf.d/opcache-recommended.ini
+RUN apk update
+RUN apk add pwgen nginx perl openssl
+RUN apk add php7-mysqli php7-pdo php7-mcrypt php7-imap php7-curl php7-zip php7-xml php7-json php7-session php7-exif php7-xmlrpc php7-mbstring php7-fpm php7-openssl
 
-VOLUME /data
+# nginx config
+# RUN sed -i -e"s/keepalive_timeout\s*65/keepalive_timeout 2/" /etc/nginx/nginx.conf
+# RUN sed -i -e"s/keepalive_timeout 2/keepalive_timeout 2;\n\tclient_max_body_size 100m/" /etc/nginx/nginx.conf
+# RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 
-RUN set -ex; \
-	curl -o wordpress.tar.gz -fSL "https://wordpress.org/latest.tar.gz"; \
-# upstream tarballs include ./wordpress/ so this gives us /usr/src/wordpress
-	tar -xzf wordpress.tar.gz -C /usr/src/; \
-	rm wordpress.tar.gz; \
-	chown -R www-data:www-data /usr/src/wordpress
+# php-fpm config
+# RUN sed -i -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g" /etc/php5/fpm/php.ini
+# RUN sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 100M/g" /etc/php5/fpm/php.ini
+# RUN sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 100M/g" /etc/php5/fpm/php.ini
+# RUN sed -i -e "s/;daemonize\s*=\s*yes/daemonize = no/g" /etc/php5/fpm/php-fpm.conf
+# RUN sed -i -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" /etc/php5/fpm/pool.d/www.conf
+# RUN find /etc/php5/cli/conf.d/ -name "*.ini" -exec sed -i -re 's/^(\s*)#(.*)/\1;\2/g' {} \;
 
-COPY entrypoint.sh /usr/local/bin/
+# nginx config
+COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx.d /etc/nginx/nginx.d
 
-ENTRYPOINT ["entrypoint.sh"]
-CMD ["php-fpm"]
+# Install Wordpress
+ADD https://wordpress.org/latest.tar.gz /data/latest.tar.gz
+RUN cd /data && tar xzf latest.tar.gz && rm latest.tar.gz
+RUN rm -rf /usr/share/nginx/www
+RUN chown -R nginx:nginx /data/wordpress
+
+# Wordpress Initialization and Startup Script
+COPY ./entry.sh /entry.sh
+RUN chmod 555 /entry.sh
+
+# private expose
+EXPOSE 80
+EXPOSE 443
+
+# volume for mysql database and wordpress install
+VOLUME ["/data"]
+
+CMD ["/bin/ash", "/entry.sh"]
