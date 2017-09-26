@@ -45,6 +45,7 @@ define('IMAGE_EDIT_OVERWRITE', true);
 define('COMPRESS_CSS', true);
 define('COMPRESS_SCRIPTS', true);
 define('CONCATENATE_SCRIPTS', true);
+define('WP_MEMORY_LIMIT', '32M');
 
 /* That's all, stop editing! Happy blogging. */
 
