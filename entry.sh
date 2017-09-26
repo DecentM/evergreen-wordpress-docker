@@ -4,12 +4,21 @@ mkdir /etc/nginx/keys
 mkdir /data/logs
 mkdir /data/wordpress
 mkdir /tmp/php-fpm
-chown nginx:nginx -R /tmp/php-fpm
 
-if [ ! -f /data/wp-config.php ]; then
-  sed -e "s/database_name_here/$WORDPRESS_DB/
+chown nginx:nginx -R /tmp/php-fpm
+chown -R nginx:nginx /data/*
+
+if [ ! -f /data/wordpress/wp-config.php ]; then
+  wget https://wordpress.org/latest.tar.gz -O /data/latest.tar.gz
+  cd /data && tar xzf latest.tar.gz && rm latest.tar.gz
+  rm -f /data/wordpress/wp-config-sample.php
+  cp /usr/share/wp-config-sample.php /data/wordpress/wp-config-sample.php
+
+  sed -e "s/siteurl_here/$WORDPRESS_SITEURL/
+  s/database_name_here/$WORDPRESS_DB/
   s/username_here/$WORDPRESS_DB/
   s/password_here/$WORDPRESS_PASSWORD/
+  s/localhost/$DB_HOST/
   /'AUTH_KEY'/s/put your unique phrase here/`pwgen -c -n -1 65`/
   /'SECURE_AUTH_KEY'/s/put your unique phrase here/`pwgen -c -n -1 65`/
   /'LOGGED_IN_KEY'/s/put your unique phrase here/`pwgen -c -n -1 65`/
@@ -18,19 +27,6 @@ if [ ! -f /data/wp-config.php ]; then
   /'SECURE_AUTH_SALT'/s/put your unique phrase here/`pwgen -c -n -1 65`/
   /'LOGGED_IN_SALT'/s/put your unique phrase here/`pwgen -c -n -1 65`/
   /'NONCE_SALT'/s/put your unique phrase here/`pwgen -c -n -1 65`/" /data/wordpress/wp-config-sample.php > /data/wordpress/wp-config.php
-
-  echo "
-    define('AUTOSAVE_INTERVAL', 30);
-    define('WP_POST_REVISIONS', 10);
-    define('DISALOW_FILE_EDIT', true);
-    define('FORCE_SSL_ADMIN', true);
-    define('AUTOMATIC_UPDATER_DISABLED', false);
-    define('WP_AUTO_UPDATE_CORE', true);
-    define('IMAGE_EDIT_OVERWRITE', true);
-    define('COMPRESS_CSS', true);
-    define('COMPRESS_SCRIPTS', true);
-    define('CONCATENATE_SCRIPTS', true);
-  " >> /data/wordpress/wp-config.php
 
   chown nginx:nginx -R /data/wordpress
 fi
