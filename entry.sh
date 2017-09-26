@@ -12,9 +12,9 @@ if [ ! -f /data/wordpress/wp-config.php ]; then
   wget https://wordpress.org/latest.tar.gz -O /data/latest.tar.gz
   cd /data && tar xzf latest.tar.gz && rm latest.tar.gz
   rm -f /data/wordpress/wp-config-sample.php
-  cp /usr/share/wp-config-sample.php /data/wordpress/wp-config-sample.php
+fi
 
-  sed -e "s/siteurl_here/$WORDPRESS_SITEURL/
+sed -e "s/siteurl_here/https\:\/\/$WORDPRESS_DB/
   s/database_name_here/$WORDPRESS_DB/
   s/username_here/$WORDPRESS_DB/
   s/password_here/$WORDPRESS_PASSWORD/
@@ -26,10 +26,10 @@ if [ ! -f /data/wordpress/wp-config.php ]; then
   /'AUTH_SALT'/s/put your unique phrase here/`pwgen -c -n -1 65`/
   /'SECURE_AUTH_SALT'/s/put your unique phrase here/`pwgen -c -n -1 65`/
   /'LOGGED_IN_SALT'/s/put your unique phrase here/`pwgen -c -n -1 65`/
-  /'NONCE_SALT'/s/put your unique phrase here/`pwgen -c -n -1 65`/" /data/wordpress/wp-config-sample.php > /data/wordpress/wp-config.php
+  /'NONCE_SALT'/s/put your unique phrase here/`pwgen -c -n -1 65`/" /usr/share/wp-config-sample.php > /data/wordpress/wp-config.php
 
-  chown nginx:nginx -R /data/wordpress
-fi
+rm -f /data/wordpress/wp-config-sample.php
+chown nginx:nginx -R /data/wordpress
 
 openssl req -new -newkey rsa:2048 \
   -days $(perl -e 'print sprintf("%d",((((2**31)-1)-(time))/86400))') \
