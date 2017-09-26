@@ -37,7 +37,7 @@ $table_prefix  = 'wp_';
 define('WP_DEBUG', false);
 define('AUTOSAVE_INTERVAL', 30);
 define('WP_POST_REVISIONS', 10);
-define('DISALOW_FILE_EDIT', true);
+define('DISALLOW_FILE_EDIT', true);
 define('FORCE_SSL_ADMIN', true);
 define('AUTOMATIC_UPDATER_DISABLED', false);
 define('WP_AUTO_UPDATE_CORE', true);
