@@ -14,7 +14,7 @@ if [ ! -f /data/wordpress/wp-config.php ]; then
   rm -f /data/wordpress/wp-config-sample.php
 fi
 
-sed -e "s/siteurl_here/https\:\/\/$WORDPRESS_DB/
+sed -e "s/siteurl_here/https\:\/\/$WORDPRESS_SITEURL/
   s/database_name_here/$WORDPRESS_DB/
   s/username_here/$WORDPRESS_DB/
   s/password_here/$WORDPRESS_PASSWORD/
