@@ -5,8 +5,11 @@ RUN adduser -D -u 1000 -g 'nginx' nginx
 
 # Install some packages we need
 RUN apk update
-RUN apk add pwgen nginx perl openssl curl supervisor wget
-RUN apk add php7-mysqli php7-pdo php7-mcrypt php7-imap php7-curl php7-zip php7-xml php7-json php7-session php7-exif php7-xmlrpc php7-mbstring php7-fpm php7-openssl php7-dom php7-ctype
+RUN apk --update add pwgen nginx perl openssl curl supervisor wget
+RUN apk --update add php7-mysqli php7-pdo php7-mcrypt php7-imap php7-curl \
+                     php7-zip php7-xml php7-json php7-session php7-exif \
+                     php7-xmlrpc php7-mbstring php7-fpm php7-openssl php7-dom \
+                     php7-ctype
 
 # nginx config
 COPY ./nginx.conf /etc/nginx/nginx.conf
